@@ -1,0 +1,37 @@
+creating bucket
+gsutil mb -l us-west1 -c standard gs://21_step_b
+
+gsutil ls gs://21_step_b
+
+gsutil cp C:\Users\saiga\Downloads\customer_details.csv gsutil:21_step_b/data/cust_dtls.csv
+
+
+bq load --source_format=CSV \
+--skip_leading_rows=1\
+ --autodetect \
+ stage_dataset.stage_tbl\
+gsutil:21_step_b/data/cust_dtls.csv
+
+bq show stage_dataset                                     customer_details.csv
+
+bq mk -t  hist_dataset.cust_details user_id:int64,age:int64,gender:string,occupation:string,zip_code:string,load_date:date,country_code:int64,entry_code:string
+
+bq query --use_legacy_sql=False "INSERT INTO hist_dataset.cust_details (user_id, age, gender, occupation, zip_code, load_date, country_code, entry_code) SELECT user_id,age,gender,occupation,zip_code, CURRENT_DATE() AS load_date,91 AS country_code,'RE' AS entry_code FROM stage_dataset.cust_table"
+
+bq query --use_legacy_sql=False "create view view_dataset.Male_cust_data as (select * from hist_dataset.cust_details where gender='M')"
+
+bq query --use_legacy_sql=False "create view view_dataset.Female_cust_data as (select * from hist_dataset.cust_details where gender='F')"
+
+bq query --use_legacy_sql=False "create table view_dataset.Male_cust_tbl as (select * from hist_dataset.cust_details where gender='M')"
+
+bq query --use_legacy_sql=False "create table view_dataset.Female_cust_tbl as (select * from hist_dataset.cust_details where gender='F')"
+
+
+BQ QUERY --USE_LEGACY_SQL=FALSE INSERT INTO
+
+
+bq query --use_legacy_sql=false ^
+"INSERT INTO hist_ecommerce_uc.custdet (user_id, age, gender, occupation, zip_code) ^
+SELECT SAFE_CAST(user_id AS INT64), CAST(age AS INT64), gender, occupation, zip_code ^
+FROM stg_ecommerce_uc.custdet"
+
